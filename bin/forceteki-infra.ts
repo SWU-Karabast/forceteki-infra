@@ -8,5 +8,6 @@ const app = new cdk.App();
 const env = { account: '182399701650', region: 'us-east-1' }
 const stackProps = { env }
 
-new BackendStack(app, 'ForcetekiInfraStack', stackProps);
-new DynamoDbStack(app, 'ForcetekiDynamoDbStack', stackProps)
+const ddbStack = new DynamoDbStack(app, 'ForcetekiDynamoDbStack', stackProps)
+new BackendStack(app, 'ForcetekiInfraStack', { ddbTable: ddbStack.ddbTable, ...stackProps });
+

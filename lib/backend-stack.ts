@@ -7,12 +7,17 @@ import { Certificate, CertificateValidation,  } from 'aws-cdk-lib/aws-certificat
 import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
 import { Cluster, ContainerImage } from 'aws-cdk-lib/aws-ecs';
 import { Vpc } from 'aws-cdk-lib/aws-ec2';
+import { TableV2 } from 'aws-cdk-lib/aws-dynamodb';
+
+interface BackendStackProps extends StackProps {
+  ddbTable: TableV2
+}
 
 /**
  * Contains the infra for the Karabast server.
  */
 export class BackendStack extends Stack {
-  constructor(scope: Construct, id: string, props: StackProps) {
+  constructor(scope: Construct, id: string, props: BackendStackProps) {
     super(scope, id, props);
 
     const image = new DockerImageAsset(this, 'Image', {
@@ -60,12 +65,14 @@ export class BackendStack extends Stack {
     service.targetGroup.configureHealthCheck({
       path: "/api/health",
       port: "9500",
-    });    
+    });
 
     new ARecord(this, 'KarabastApiRecord', {
       zone: hostedZone,
       recordName: 'api.beta.karabast.net',
       target: RecordTarget.fromAlias(new LoadBalancerTarget(service.loadBalancer)),
     });
+
+    props.ddbTable.grantReadWriteData(service.taskDefinition.taskRole);
   }
 }
