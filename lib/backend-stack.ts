@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { Stack, StackProps } from 'aws-cdk-lib';
+import { Stack, StackProps, Duration } from 'aws-cdk-lib';
 import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { HostedZone, ARecord, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { LoadBalancerTarget } from 'aws-cdk-lib/aws-route53-targets';
@@ -60,6 +60,7 @@ export class BackendStack extends Stack {
       desiredCount: 1,
       certificate: certificate,
       redirectHTTP: true,
+      healthCheckGracePeriod: Duration.seconds(180)
     })
 
     service.targetGroup.configureHealthCheck({
