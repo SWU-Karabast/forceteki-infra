@@ -39,11 +39,11 @@ export class BackendStack extends Stack {
     })
 
     const hostedZone = HostedZone.fromLookup(this, 'HostedZone', {
-      domainName: 'beta.karabast.net',
+      domainName: 'karabast.net',
     });
 
     const certificate = new Certificate(this, 'KarabastCertificate', {
-      domainName: 'api.beta.karabast.net',
+      domainName: 'api.karabast.net',
       validation: CertificateValidation.fromDns(hostedZone),
     });
 
@@ -70,7 +70,7 @@ export class BackendStack extends Stack {
 
     new ARecord(this, 'KarabastApiRecord', {
       zone: hostedZone,
-      recordName: 'api.beta.karabast.net',
+      recordName: 'api.karabast.net',
       target: RecordTarget.fromAlias(new LoadBalancerTarget(service.loadBalancer)),
     });
 
