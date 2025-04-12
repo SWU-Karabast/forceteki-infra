@@ -5,9 +5,10 @@ import { HostedZone, ARecord, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { LoadBalancerTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { Certificate, CertificateValidation,  } from 'aws-cdk-lib/aws-certificatemanager';
 import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
-import { Cluster, ContainerImage } from 'aws-cdk-lib/aws-ecs';
+import { Cluster, ContainerImage, Secret as EcsSecret } from 'aws-cdk-lib/aws-ecs';
 import { Vpc } from 'aws-cdk-lib/aws-ec2';
 import { TableV2 } from 'aws-cdk-lib/aws-dynamodb';
+import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 
 interface BackendStackProps extends StackProps {
   ddbTable: TableV2
@@ -47,6 +48,11 @@ export class BackendStack extends Stack {
       validation: CertificateValidation.fromDns(hostedZone),
     });
 
+    const secretsManager = Secret.fromSecretCompleteArn(
+      this, 'karabast-secrets', 
+      'arn:aws:secretsmanager:us-east-1:182399701650:secret:karabast-secrets-HUR52x'
+    );
+
     const service = new ApplicationLoadBalancedFargateService(this, "Service", {
       serviceName: 'karabast-service',
       loadBalancerName: 'karabast-alb',
@@ -55,12 +61,19 @@ export class BackendStack extends Stack {
       cpu: 2048, // 2 vCPU
       taskImageOptions: {
           image: ContainerImage.fromDockerImageAsset(image),
-          containerPort: 9500
+          containerPort: 9500,
+          secrets: {
+            DISCORD_BUG_REPORT_WEBHOOK_URL: EcsSecret.fromSecretsManager(secretsManager, "DISCORD_BUG_REPORT_WEBHOOK_URL")
+          },
       },
       desiredCount: 1,
       certificate: certificate,
       redirectHTTP: true,
-      healthCheckGracePeriod: Duration.seconds(180)
+      healthCheckGracePeriod: Duration.seconds(180),
+      circuitBreaker: {
+        enable: true,
+        rollback: true
+      },
     })
 
     service.targetGroup.configureHealthCheck({
