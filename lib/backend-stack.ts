@@ -63,7 +63,10 @@ export class BackendStack extends Stack {
           image: ContainerImage.fromDockerImageAsset(image),
           containerPort: 9500,
           secrets: {
-            DISCORD_BUG_REPORT_WEBHOOK_URL: EcsSecret.fromSecretsManager(secretsManager, "DISCORD_BUG_REPORT_WEBHOOK_URL")
+            DISCORD_BUG_REPORT_WEBHOOK_URL: EcsSecret.fromSecretsManager(secretsManager, "DISCORD_BUG_REPORT_WEBHOOK_URL"),
+            AWS_ACCESS_KEY_ID: EcsSecret.fromSecretsManager(secretsManager, "AWS_ACCESS_KEY_ID"),
+            AWS_SECRET_ACCESS_KEY: EcsSecret.fromSecretsManager(secretsManager, "AWS_SECRET_ACCESS_KEY"),
+            NEXTAUTH_SECRET: EcsSecret.fromSecretsManager(secretsManager, "NEXTAUTH_SECRET"),
           },
       },
       desiredCount: 1,
