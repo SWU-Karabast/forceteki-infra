@@ -38,8 +38,8 @@ export class KarabastMainStack extends Stack {
     });
 
     const taskDef = new FargateTaskDefinition(this, 'KarabastTaskDef', {
-      memoryLimitMiB: 2048,
-      cpu: 1024,
+      memoryLimitMiB: 4096,
+      cpu: 2048,
     });
 
     taskDef.addContainer('AppContainer', {
