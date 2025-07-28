@@ -60,6 +60,9 @@ export class KarabastMainStack extends Stack {
         DISCORD_BUG_REPORT_WEBHOOK_URL: Secret.fromSecretsManager(secrets, 'DISCORD_BUG_REPORT_WEBHOOK_URL'),
         DUMMY_SECRET: Secret.fromSecretsManager(secrets, 'DUMMY_SECRET'),
       },
+      environment: {
+        AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
+      },
       logging: LogDriver.awsLogs({ streamPrefix: 'Karabast' }),
     });
     
