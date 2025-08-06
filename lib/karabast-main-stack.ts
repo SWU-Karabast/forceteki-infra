@@ -10,7 +10,7 @@ import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { TableV2 } from 'aws-cdk-lib/aws-dynamodb';
 import { Secret as SecretsManager } from 'aws-cdk-lib/aws-secretsmanager';
 
-const CONTAINER_MEMORY_MIB = 4096;
+const CONTAINER_MEMORY_MIB = 6144;
 
 interface KarabastMainStackProps extends StackProps {
   ddbTable: TableV2;
