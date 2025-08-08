@@ -10,6 +10,8 @@ import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { TableV2 } from 'aws-cdk-lib/aws-dynamodb';
 import { Secret as SecretsManager } from 'aws-cdk-lib/aws-secretsmanager';
 
+const CONTAINER_MEMORY_MIB = 6144;
+
 interface KarabastMainStackProps extends StackProps {
   ddbTable: TableV2;
 }
@@ -38,7 +40,7 @@ export class KarabastMainStack extends Stack {
     });
 
     const taskDef = new FargateTaskDefinition(this, 'KarabastTaskDef', {
-      memoryLimitMiB: 4096,
+      memoryLimitMiB: CONTAINER_MEMORY_MIB,
       cpu: 2048,
     });
 
@@ -62,6 +64,9 @@ export class KarabastMainStack extends Stack {
       },
       environment: {
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
+
+        // set max heap size for nodejs to be 1GB less than total container memory
+        NODE_OPTIONS: `--max-old-space-size=${CONTAINER_MEMORY_MIB - 1024}`,
       },
       logging: LogDriver.awsLogs({ streamPrefix: 'Karabast' }),
     });
