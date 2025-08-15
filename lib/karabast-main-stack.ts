@@ -61,6 +61,8 @@ export class KarabastMainStack extends Stack {
         DISCORD_CLIENT_SECRET: Secret.fromSecretsManager(secrets, 'DISCORD_CLIENT_SECRET'),
         DISCORD_BUG_REPORT_WEBHOOK_URL: Secret.fromSecretsManager(secrets, 'DISCORD_BUG_REPORT_WEBHOOK_URL'),
         DUMMY_SECRET: Secret.fromSecretsManager(secrets, 'DUMMY_SECRET'),
+        SWUSTATS_API_KEY: Secret.fromSecretsManager(secrets, 'SWUSTATS_API_KEY'),
+        DISCORD_ERROR_REPORT_WEBHOOK_URL: Secret.fromSecretsManager(secrets, 'DISCORD_ERROR_REPORT_WEBHOOK_URL'),
       },
       environment: {
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
