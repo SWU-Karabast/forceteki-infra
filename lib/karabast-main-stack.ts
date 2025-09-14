@@ -65,6 +65,7 @@ export class KarabastMainStack extends Stack {
         SWUSTATS_API_KEY: Secret.fromSecretsManager(secrets, 'SWUSTATS_API_KEY'),
         SWUSTATS_CLIENT_ID: Secret.fromSecretsManager(secrets, 'SWUSTATS_CLIENT_ID'),
         SWUSTATS_CLIENT_SECRET: Secret.fromSecretsManager(secrets, 'SWUSTATS_CLIENT_SECRET'),
+        INTRASERVICE_SECRET: Secret.fromSecretsManager(secrets, 'INTRASERVICE_SECRET'),
       },
       environment: {
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
