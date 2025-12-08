@@ -14,5 +14,9 @@
   "hosted-zone:account=182399701650:domainName=karabast.net:region=us-east-1": {
     "Id": "/hostedzone/Z08061671Q8X4FS5C1RC4",
     "Name": "karabast.net."
-  }
+  },
+  "acknowledged-issue-numbers": [
+    32775,
+    34892
+  ]
 }
