@@ -3,7 +3,8 @@ import {
   Stack, StackProps, Duration,
 } from 'aws-cdk-lib';
 import {
-  Cluster, FargateService, FargateTaskDefinition, ContainerImage, LogDriver, Secret
+  Cluster, FargateService, FargateTaskDefinition, ContainerImage, LogDriver, Secret,
+  CpuArchitecture, OperatingSystemFamily
 } from 'aws-cdk-lib/aws-ecs';
 import { Vpc, SubnetType, SecurityGroup, Port, Peer } from 'aws-cdk-lib/aws-ec2';
 import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
@@ -22,7 +23,7 @@ export class KarabastMainStack extends Stack {
 
     const image = new DockerImageAsset(this, 'KarabastImage', {
       directory: '../forceteki',
-      platform: Platform.LINUX_AMD64,
+      platform: Platform.LINUX_ARM64,
       buildArgs: {
         BUILDX_NO_DEFAULT_ATTESTATIONS: '1',
       },
@@ -42,6 +43,10 @@ export class KarabastMainStack extends Stack {
     const taskDef = new FargateTaskDefinition(this, 'KarabastTaskDef', {
       memoryLimitMiB: CONTAINER_MEMORY_MIB,
       cpu: 2048,
+      runtimePlatform: {
+        cpuArchitecture: CpuArchitecture.ARM64,
+        operatingSystemFamily: OperatingSystemFamily.LINUX,
+      },
     });
 
     taskDef.addContainer('AppContainer', {
