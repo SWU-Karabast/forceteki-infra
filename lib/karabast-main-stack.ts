@@ -67,12 +67,13 @@ export class KarabastMainStack extends Stack {
         SWUSTATS_CLIENT_SECRET: Secret.fromSecretsManager(secrets, 'SWUSTATS_CLIENT_SECRET'),
         INTRASERVICE_SECRET: Secret.fromSecretsManager(secrets, 'INTRASERVICE_SECRET'),
         PROFILE_CAPTURE_SECRET: Secret.fromSecretsManager(secrets, 'PROFILE_CAPTURE_SECRET'),
+        DISCORD_PLAYER_REPORT_WEBHOOK_URL: Secret.fromSecretsManager(secrets, 'DISCORD_PLAYER_REPORT_WEBHOOK_URL'),
       },
       environment: {
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
 
         // set max heap size for nodejs to be 1GB less than total container memory
-        NODE_OPTIONS: `--max-old-space-size=${CONTAINER_MEMORY_MIB - 1024}`,
+        NODE_OPTIONS: `--max-old-space-size=${CONTAINER_MEMORY_MIB - 1024} --max-semi-space-size=128`,
       },
       logging: LogDriver.awsLogs({ streamPrefix: 'Karabast' }),
     });
