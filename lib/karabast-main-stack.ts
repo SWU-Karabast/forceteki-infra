@@ -3,12 +3,15 @@ import {
   Stack, StackProps, Duration,
 } from 'aws-cdk-lib';
 import {
-  Cluster, FargateService, FargateTaskDefinition, ContainerImage, LogDriver, Secret
+  ContainerImage, LogDriver, Secret
 } from 'aws-cdk-lib/aws-ecs';
-import { Vpc, SubnetType, SecurityGroup, Port, Peer } from 'aws-cdk-lib/aws-ec2';
+import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
+import { Vpc, SubnetType } from 'aws-cdk-lib/aws-ec2';
 import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { TableV2 } from 'aws-cdk-lib/aws-dynamodb';
 import { Secret as SecretsManager } from 'aws-cdk-lib/aws-secretsmanager';
+import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { HostedZone } from 'aws-cdk-lib/aws-route53';
 
 const CONTAINER_MEMORY_MIB = 6144;
 
@@ -20,7 +23,7 @@ export class KarabastMainStack extends Stack {
   constructor(scope: Construct, id: string, props: KarabastMainStackProps) {
     super(scope, id, props);
 
-    const image = new DockerImageAsset(this, 'KarabastImage', {
+    const image = new DockerImageAsset(this, 'KarabastDevImage', {
       directory: '../forceteki',
       platform: Platform.LINUX_AMD64,
       buildArgs: {
@@ -35,68 +38,67 @@ export class KarabastMainStack extends Stack {
       natGateways: 0,
     });
 
-    const cluster = new Cluster(this, 'KarabastCluster', {
-      vpc,
+    // Import Route53 hosted zone
+    const hostedZone = HostedZone.fromLookup(this, 'KarabastZone', {
+      domainName: 'karabast.net',
     });
 
-    const taskDef = new FargateTaskDefinition(this, 'KarabastTaskDef', {
-      memoryLimitMiB: CONTAINER_MEMORY_MIB,
+    const certificate = Certificate.fromCertificateArn(
+      this,
+      'KarabastCertificate',
+      'arn:aws:acm:us-east-1:182399701650:certificate/a9f6ff31-2efe-44ce-83f8-6da9cdf6b111'
+    );
+
+    const fargateService = new ApplicationLoadBalancedFargateService(this, 'KarabastService', {
+      vpc,
       cpu: 2048,
-    });
-
-    taskDef.addContainer('AppContainer', {
-      image: ContainerImage.fromDockerImageAsset(image),
-      portMappings: [
-        {
-          containerPort: 9500,
-        },
-      ],
-      secrets: {
-        AWS_ACCESS_KEY_ID: Secret.fromSecretsManager(secrets, 'AWS_ACCESS_KEY_ID'),
-        AWS_SECRET_ACCESS_KEY: Secret.fromSecretsManager(secrets, 'AWS_SECRET_ACCESS_KEY'),
-        NEXTAUTH_SECRET: Secret.fromSecretsManager(secrets, 'NEXTAUTH_SECRET'),
-        GOOGLE_CLIENT_ID: Secret.fromSecretsManager(secrets, 'GOOGLE_CLIENT_ID'),
-        GOOGLE_CLIENT_SECRET: Secret.fromSecretsManager(secrets, 'GOOGLE_CLIENT_SECRET'),
-        DISCORD_CLIENT_ID: Secret.fromSecretsManager(secrets, 'DISCORD_CLIENT_ID'),
-        DISCORD_CLIENT_SECRET: Secret.fromSecretsManager(secrets, 'DISCORD_CLIENT_SECRET'),
-        DISCORD_BUG_REPORT_WEBHOOK_URL: Secret.fromSecretsManager(secrets, 'DISCORD_BUG_REPORT_WEBHOOK_URL'),
-        DISCORD_ERROR_REPORT_WEBHOOK_URL: Secret.fromSecretsManager(secrets, 'DISCORD_ERROR_REPORT_WEBHOOK_URL'),
-        DUMMY_SECRET: Secret.fromSecretsManager(secrets, 'DUMMY_SECRET'),
-        SWUSTATS_API_KEY: Secret.fromSecretsManager(secrets, 'SWUSTATS_API_KEY'),
-        SWUSTATS_CLIENT_ID: Secret.fromSecretsManager(secrets, 'SWUSTATS_CLIENT_ID'),
-        SWUSTATS_CLIENT_SECRET: Secret.fromSecretsManager(secrets, 'SWUSTATS_CLIENT_SECRET'),
-        INTRASERVICE_SECRET: Secret.fromSecretsManager(secrets, 'INTRASERVICE_SECRET'),
-        PROFILE_CAPTURE_SECRET: Secret.fromSecretsManager(secrets, 'PROFILE_CAPTURE_SECRET'),
-        DISCORD_PLAYER_REPORT_WEBHOOK_URL: Secret.fromSecretsManager(secrets, 'DISCORD_PLAYER_REPORT_WEBHOOK_URL'),
-      },
-      environment: {
-        AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
-
-        // set max heap size for nodejs to be 1GB less than total container memory
-        NODE_OPTIONS: `--max-old-space-size=${CONTAINER_MEMORY_MIB - 1024} --max-semi-space-size=128`,
-      },
-      logging: LogDriver.awsLogs({ streamPrefix: 'Karabast' }),
-    });
-    
-    secrets.grantRead(taskDef.taskRole);
-
-    const sg = new SecurityGroup(this, 'KarabastSG', {
-      vpc,
-      allowAllOutbound: true,
-    });
-
-    sg.addIngressRule(Peer.anyIpv4(), Port.tcp(80), 'Allow HTTP traffic');
-    sg.addIngressRule(Peer.anyIpv4(), Port.tcp(443), 'Allow HTTPS traffic');
-
-    const service = new FargateService(this, 'KarabastService', {
-      cluster,
-      taskDefinition: taskDef,
-      assignPublicIp: true,
+      memoryLimitMiB: CONTAINER_MEMORY_MIB,
       desiredCount: 1,
-      securityGroups: [sg],
-      vpcSubnets: { subnetType: SubnetType.PUBLIC },
+      taskImageOptions: {
+        image: ContainerImage.fromDockerImageAsset(image),
+        containerPort: 9500,
+        secrets: {
+          AWS_ACCESS_KEY_ID: Secret.fromSecretsManager(secrets, 'AWS_ACCESS_KEY_ID'),
+          AWS_SECRET_ACCESS_KEY: Secret.fromSecretsManager(secrets, 'AWS_SECRET_ACCESS_KEY'),
+          NEXTAUTH_SECRET: Secret.fromSecretsManager(secrets, 'NEXTAUTH_SECRET'),
+          GOOGLE_CLIENT_ID: Secret.fromSecretsManager(secrets, 'GOOGLE_CLIENT_ID'),
+          GOOGLE_CLIENT_SECRET: Secret.fromSecretsManager(secrets, 'GOOGLE_CLIENT_SECRET'),
+          DISCORD_CLIENT_ID: Secret.fromSecretsManager(secrets, 'DISCORD_CLIENT_ID'),
+          DISCORD_CLIENT_SECRET: Secret.fromSecretsManager(secrets, 'DISCORD_CLIENT_SECRET'),
+          DISCORD_BUG_REPORT_WEBHOOK_URL: Secret.fromSecretsManager(secrets, 'DISCORD_BUG_REPORT_WEBHOOK_URL'),
+          DISCORD_ERROR_REPORT_WEBHOOK_URL: Secret.fromSecretsManager(secrets, 'DISCORD_ERROR_REPORT_WEBHOOK_URL'),
+          DUMMY_SECRET: Secret.fromSecretsManager(secrets, 'DUMMY_SECRET'),
+          SWUSTATS_API_KEY: Secret.fromSecretsManager(secrets, 'SWUSTATS_API_KEY'),
+          SWUSTATS_CLIENT_ID: Secret.fromSecretsManager(secrets, 'SWUSTATS_CLIENT_ID'),
+          SWUSTATS_CLIENT_SECRET: Secret.fromSecretsManager(secrets, 'SWUSTATS_CLIENT_SECRET'),
+          INTRASERVICE_SECRET: Secret.fromSecretsManager(secrets, 'INTRASERVICE_SECRET'),
+          PROFILE_CAPTURE_SECRET: Secret.fromSecretsManager(secrets, 'PROFILE_CAPTURE_SECRET'),
+          DISCORD_PLAYER_REPORT_WEBHOOK_URL: Secret.fromSecretsManager(secrets, 'DISCORD_PLAYER_REPORT_WEBHOOK_URL'),
+        },
+        environment: {
+          AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
+          NODE_OPTIONS: `--max-old-space-size=${CONTAINER_MEMORY_MIB - 1024} --max-semi-space-size=128`,
+        },
+        logDriver: LogDriver.awsLogs({ streamPrefix: 'Karabast' }),
+      },
+      assignPublicIp: true,
+      taskSubnets: { subnetType: SubnetType.PUBLIC },
+      domainName: 'api.karabast.net',
+      domainZone: hostedZone,
+      certificate,
+      redirectHTTP: true,
     });
 
-    props.ddbTable.grantReadWriteData(taskDef.taskRole);
+    secrets.grantRead(fargateService.taskDefinition.taskRole);
+    props.ddbTable.grantReadWriteData(fargateService.taskDefinition.taskRole);
+
+    // Customize health check - lenient settings for startup time
+    fargateService.targetGroup.configureHealthCheck({
+      path: '/api/health',
+      interval: Duration.seconds(60),
+      timeout: Duration.seconds(10),
+      healthyThresholdCount: 2,
+      unhealthyThresholdCount: 5,
+    });
   }
 }
