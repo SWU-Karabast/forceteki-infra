@@ -78,6 +78,7 @@ export class KarabastMainStack extends Stack {
         environment: {
           AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
           NODE_OPTIONS: `--max-old-space-size=${CONTAINER_MEMORY_MIB - 1024} --max-semi-space-size=128`,
+          NODE_ENV: 'production',
         },
         logDriver: LogDriver.awsLogs({ streamPrefix: 'Karabast' }),
       },
