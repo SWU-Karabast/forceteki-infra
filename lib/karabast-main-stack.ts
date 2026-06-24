@@ -13,7 +13,7 @@ import { Secret as SecretsManager } from 'aws-cdk-lib/aws-secretsmanager';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { HostedZone } from 'aws-cdk-lib/aws-route53';
 
-const CONTAINER_MEMORY_MIB = 6144;
+const CONTAINER_MEMORY_MIB = 4096;
 
 interface KarabastMainStackProps extends StackProps {
   ddbTable: TableV2;
