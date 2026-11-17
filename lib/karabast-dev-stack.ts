@@ -23,6 +23,8 @@ export class KarabastDevStack extends Stack {
   constructor(scope: Construct, id: string, props: KarabastDevStackProps) {
     super(scope, id, props);
 
+    // Built from forceteki's Dockerfile and .dockerignore. Its local image scripts build separately, so keep
+    // `platform` in sync with `imagePlatform` in forceteki's scripts/docker/common.js.
     const image = new DockerImageAsset(this, 'KarabastDevImage', {
       directory: '../forceteki',
       platform: Platform.LINUX_AMD64,
