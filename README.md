@@ -53,4 +53,4 @@ This project defines three AWS CloudFormation stacks via CDK:
 3. Make sure `../forceteki/test/json` is current: run `npm run get-cards` there if `card-data-version.txt`, `fetchdata.js` or `mockdata.js` changed. The image build fails with a clear message if it's stale.
 4. Run `cdk deploy KarabastDevStack` or `cdk deploy KarabastMainStack`.
 
-To test the image locally before deploying, see "Production Docker Image" in the forceteki README.
+To test the image locally before deploying, see `DOCKER.md` in forceteki.
