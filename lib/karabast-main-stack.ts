@@ -76,6 +76,7 @@ export class KarabastMainStack extends Stack {
           INTRASERVICE_SECRET: Secret.fromSecretsManager(secrets, 'INTRASERVICE_SECRET'),
           PROFILE_CAPTURE_SECRET: Secret.fromSecretsManager(secrets, 'PROFILE_CAPTURE_SECRET'),
           DISCORD_PLAYER_REPORT_WEBHOOK_URL: Secret.fromSecretsManager(secrets, 'DISCORD_PLAYER_REPORT_WEBHOOK_URL'),
+          DISCORD_ROLE_ASSIGNMENT_WEBHOOK_URL: Secret.fromSecretsManager(secrets, 'DISCORD_ROLE_ASSIGNMENT_WEBHOOK_URL'),
           SWUBASE_CLIENT_ID: Secret.fromSecretsManager(secrets, 'SWUBASE_CLIENT_ID'),
           SWUBASE_CLIENT_SECRET: Secret.fromSecretsManager(secrets, 'SWUBASE_CLIENT_SECRET'),
         },
